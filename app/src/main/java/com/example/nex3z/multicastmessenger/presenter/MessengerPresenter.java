@@ -1,10 +1,8 @@
 package com.example.nex3z.multicastmessenger.presenter;
 
-import android.util.Log;
-
-import com.example.nex3z.multicastmessenger.interactor.DefaultSubscriber;
-import com.example.nex3z.multicastmessenger.interactor.ReceiveMessageArg;
-import com.example.nex3z.multicastmessenger.interactor.SendMessageArg;
+import com.example.nex3z.multicastmessenger.interactor.DefaultObserver;
+import com.example.nex3z.multicastmessenger.interactor.ReceiveMessage;
+import com.example.nex3z.multicastmessenger.interactor.SendMessage;
 import com.example.nex3z.multicastmessenger.interactor.UseCase;
 import com.example.nex3z.multicastmessenger.model.MessageModel;
 import com.example.nex3z.multicastmessenger.ui.MessengerView;
@@ -17,8 +15,6 @@ public class MessengerPresenter implements Presenter {
 
     private static final String DEFAULT_ADDRESS = "225.0.0.3";
     private static final int DEFAULT_PORT = 8888;
-    private static final int BUFFER_SIZE = 256;
-    private static final int READ_TIMEOUT = 2000;
 
     private UseCase mSendUseCase;
     private UseCase mReceiveUseCase;
@@ -62,32 +58,38 @@ public class MessengerPresenter implements Presenter {
 
     @Override
     public void destroy() {
-        mSendUseCase.unsubscribe();
-        mReceiveUseCase.unsubscribe();
+        mSendUseCase.dispose();
+        mReceiveUseCase.dispose();
         mView = null;
     }
 
     @SuppressWarnings("unchecked")
     private void sendMessage(MessageModel message) {
-        mSendUseCase.init(new SendMessageArg(message)).execute(new SendMessageSubscriber());
+        mSendUseCase.execute(new SendMessageSubscriber(message), SendMessage.Params.forMessage(message));
     }
 
     @SuppressWarnings("unchecked")
     private void startReceive() {
-        mReceiveUseCase.init(new ReceiveMessageArg(mGroupIp, mPort))
-                .execute(new ReceiveMessageSubscriber());
+        mReceiveUseCase.execute(new ReceiveMessageSubscriber(), ReceiveMessage.Params.forConfig(mGroupIp, mPort));
     }
 
     private void renderMessage(MessageModel message) {
-        Log.v(LOG_TAG, "renderMessage(): message = " + message);
         mMessages.add(message);
         mView.renderMessageModelAt(mMessages.size() - 1);
     }
 
-    private final class SendMessageSubscriber extends DefaultSubscriber<MessageModel> {
+    private final class SendMessageSubscriber extends DefaultObserver<Boolean> {
+        private MessageModel mMessageModel;
+
+        public SendMessageSubscriber(MessageModel messageModel) {
+            mMessageModel = messageModel;
+        }
+
         @Override
-        public void onNext(MessageModel messageModel) {
-            renderMessage(messageModel);
+        public void onNext(Boolean b) {
+            if (b) {
+                renderMessage(mMessageModel);
+            }
         }
 
         @Override
@@ -96,7 +98,7 @@ public class MessengerPresenter implements Presenter {
         }
     }
 
-    private final class ReceiveMessageSubscriber extends DefaultSubscriber<MessageModel> {
+    private final class ReceiveMessageSubscriber extends DefaultObserver<MessageModel> {
         @Override
         public void onNext(MessageModel messageModel) {
             renderMessage(messageModel);

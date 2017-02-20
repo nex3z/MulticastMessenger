@@ -1,66 +1,48 @@
 package com.example.nex3z.multicastmessenger.interactor;
 
-import android.content.Context;
-import android.net.wifi.WifiManager;
 import android.util.Log;
 
-import com.example.nex3z.multicastmessenger.app.App;
+import com.example.nex3z.multicastmessenger.datasource.DataSource;
 import com.example.nex3z.multicastmessenger.executor.PostExecutionThread;
 import com.example.nex3z.multicastmessenger.executor.ThreadExecutor;
 import com.example.nex3z.multicastmessenger.model.MessageModel;
 
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
+import io.reactivex.Observable;
 
-import rx.Observable;
-import rx.Subscriber;
-
-public class SendMessage extends UseCase<SendMessageArg> {
+public class SendMessage extends UseCase<Boolean, SendMessage.Params> {
     private static final String LOG_TAG = SendMessage.class.getSimpleName();
-    private static final String MULTICAST_TAG = "multicast_send";
 
-    public SendMessage(ThreadExecutor threadExecutor,
+    private final DataSource mDataSource;
+
+    public SendMessage(DataSource dataSource, ThreadExecutor threadExecutor,
                        PostExecutionThread postExecutionThread) {
         super(threadExecutor, postExecutionThread);
+        mDataSource = dataSource;
     }
 
     @Override
-    protected Observable buildUseCaseObservable() {
-        Log.v(LOG_TAG, "buildUseCaseObservable(): mArg = " + mArg);
-        if (mArg == null) {
-            throw new IllegalArgumentException("Arg cannot be null.");
+    Observable<Boolean> buildUseCaseObservable(Params params) {
+        if (params == null) {
+            throw new IllegalArgumentException("params cannot be null.");
         }
-        return Observable.create(new Observable.OnSubscribe<MessageModel>() {
-            @Override
-            public void call(Subscriber<? super MessageModel> sub) {
-                WifiManager wifiManager = (WifiManager) App.getAppContext().getSystemService(Context.WIFI_SERVICE);
-                WifiManager.MulticastLock multicastLock = wifiManager.createMulticastLock(MULTICAST_TAG);
-                multicastLock.acquire();
-                try {
-                    InetAddress address = InetAddress.getByName(
-                            mArg.getMessageModel().getAddress());
-                    int port = mArg.getMessageModel().getPort();
-                    String message = mArg.getMessageModel().getMessage();
+        Log.v(LOG_TAG, "buildUseCaseObservable(): params = " + params.getMessageModel());
 
-                    MulticastSocket socket = new MulticastSocket(port);
-                    socket.joinGroup(address);
+        return mDataSource.send(params.getMessageModel());
+    }
 
-                    DatagramPacket sendPacket = new DatagramPacket(
-                            message.getBytes(), message.getBytes().length, address, port);
-                    socket.send(sendPacket);
+    public static final class Params {
+        private final MessageModel mMessageModel;
 
-                    socket.leaveGroup(address);
+        private Params(MessageModel messageModel) {
+            mMessageModel = messageModel;
+        }
 
-                    sub.onNext(mArg.getMessageModel());
-                } catch (Exception e) {
-                    sub.onError(e);
-                } finally {
-                    multicastLock.release();
-                    sub.onCompleted();
-                }
-            }
-            }
-        );
+        public MessageModel getMessageModel() {
+            return mMessageModel;
+        }
+
+        public static Params forMessage(MessageModel messageModel) {
+            return new Params(messageModel);
+        }
     }
 }

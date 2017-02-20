@@ -2,8 +2,9 @@ package com.example.nex3z.multicastmessenger.ui;
 
 import com.example.nex3z.multicastmessenger.executor.PostExecutionThread;
 
-import rx.Scheduler;
-import rx.android.schedulers.AndroidSchedulers;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+
 
 public class UIThread implements PostExecutionThread {
 

@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.example.nex3z.multicastmessenger.interactor;
 
-/**
- * Default subscriber base class to be used whenever you want default error handling.
- */
-public class DefaultSubscriber<T> extends rx.Subscriber<T> {
-    @Override public void onCompleted() {
-        // no-op by default.
-    }
+import io.reactivex.observers.DisposableObserver;
 
-    @Override public void onError(Throwable e) {
-        // no-op by default.
-    }
+public class DefaultObserver<T> extends DisposableObserver<T> {
+  @Override public void onNext(T t) {
+    // no-op by default.
+  }
 
-    @Override public void onNext(T t) {
-        // no-op by default.
-    }
+  @Override public void onComplete() {
+    // no-op by default.
+  }
+
+  @Override public void onError(Throwable exception) {
+    // no-op by default.
+  }
 }

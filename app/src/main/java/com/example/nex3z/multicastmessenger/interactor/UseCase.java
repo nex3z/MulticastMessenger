@@ -19,44 +19,42 @@ package com.example.nex3z.multicastmessenger.interactor;
 import com.example.nex3z.multicastmessenger.executor.PostExecutionThread;
 import com.example.nex3z.multicastmessenger.executor.ThreadExecutor;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 
-public abstract class UseCase<T> {
+public abstract class UseCase<T, Params> {
 
     private final ThreadExecutor mThreadExecutor;
     private final PostExecutionThread mPostExecutionThread;
+    private final CompositeDisposable mDisposables;
 
-    private Subscription mSubscription = Subscriptions.empty();
-
-    protected T mArg;
-
-    protected UseCase(ThreadExecutor threadExecutor, PostExecutionThread postExecutionThread) {
-        this.mThreadExecutor = threadExecutor;
-        this.mPostExecutionThread = postExecutionThread;
+    UseCase(ThreadExecutor threadExecutor, PostExecutionThread postExecutionThread) {
+        mThreadExecutor = threadExecutor;
+        mPostExecutionThread = postExecutionThread;
+        mDisposables = new CompositeDisposable();
     }
 
-    public UseCase init(T arg) {
-        mArg = arg;
-        return this;
-    }
+    abstract Observable<T> buildUseCaseObservable(Params params);
 
-    protected abstract Observable buildUseCaseObservable();
-
-    @SuppressWarnings("unchecked")
-    public void execute(Subscriber UseCaseSubscriber) {
-        this.mSubscription = this.buildUseCaseObservable()
+    public void execute(DisposableObserver<T> observer, Params params) {
+        final Observable<T> observable = this.buildUseCaseObservable(params)
                 .subscribeOn(Schedulers.from(mThreadExecutor))
-                .observeOn(mPostExecutionThread.getScheduler())
-                .subscribe(UseCaseSubscriber);
+                .observeOn(mPostExecutionThread.getScheduler());
+        addDisposable(observable.subscribeWith(observer));
     }
 
-    public void unsubscribe() {
-        if (!mSubscription.isUnsubscribed()) {
-            mSubscription.unsubscribe();
+    public void dispose() {
+        if (!mDisposables.isDisposed()) {
+            mDisposables.dispose();
+        }
+    }
+
+    private void addDisposable(Disposable disposable) {
+        if (disposable != null) {
+            mDisposables.add(disposable);
         }
     }
 }

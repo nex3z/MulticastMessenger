@@ -1,64 +1,66 @@
 package com.example.nex3z.multicastmessenger.interactor;
 
-import android.content.Context;
-import android.net.wifi.WifiManager;
-
-import com.example.nex3z.multicastmessenger.app.App;
+import com.example.nex3z.multicastmessenger.datasource.DataSource;
 import com.example.nex3z.multicastmessenger.executor.PostExecutionThread;
 import com.example.nex3z.multicastmessenger.executor.ThreadExecutor;
 import com.example.nex3z.multicastmessenger.model.MessageModel;
 
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.SocketTimeoutException;
+import io.reactivex.Observable;
 
-import rx.Observable;
-import rx.Subscriber;
-
-public class ReceiveMessage extends UseCase<ReceiveMessageArg> {
+public class ReceiveMessage extends UseCase<MessageModel, ReceiveMessage.Params> {
     private static final String LOG_TAG = ReceiveMessage.class.getSimpleName();
-    private static final String MULTICAST_TAG = "multicast_recv";
-    private static final int READ_TIMEOUT = 500;
 
-    public ReceiveMessage(ThreadExecutor threadExecutor,
-                       PostExecutionThread postExecutionThread) {
+    private final DataSource mDataSource;
+
+    public ReceiveMessage(DataSource dataSource, ThreadExecutor threadExecutor,
+                          PostExecutionThread postExecutionThread) {
         super(threadExecutor, postExecutionThread);
+        mDataSource = dataSource;
     }
 
     @Override
-    protected Observable buildUseCaseObservable() {
-        return Observable.create(new Observable.OnSubscribe<MessageModel>() {
-            @Override
-            public void call(Subscriber<? super MessageModel> subscriber) {
-                WifiManager wifiManager = (WifiManager) App.getAppContext().getSystemService(Context.WIFI_SERVICE);
-                WifiManager.MulticastLock multicastLock = wifiManager.createMulticastLock(MULTICAST_TAG);
-                multicastLock.acquire();
-                try {
-                    MulticastSocket socket = new MulticastSocket(mArg.getPort());
-                    socket.setSoTimeout(READ_TIMEOUT);
-                    InetAddress address = InetAddress.getByName(mArg.getAddress());
-                    socket.joinGroup(address);
+    Observable<MessageModel> buildUseCaseObservable(Params params) {
+        if (params == null) {
+            throw new IllegalArgumentException("params cannot be null.");
+        }
+        return mDataSource.receive(params.getAddress(), params.getPort(), params.getBufferSize());
+    }
 
-                    byte[] buf = new byte[mArg.getBufferSize()];
-                    while (!subscriber.isUnsubscribed()) {
-                        DatagramPacket packet = new DatagramPacket(buf, buf.length);
-                        try {
-                            socket.receive(packet);
-                        } catch (SocketTimeoutException e) {
-                            continue;
-                        }
-                        String msg = new String(packet.getData(), 0, packet.getLength());
-                        subscriber.onNext(new MessageModel(MessageModel.RECV,
-                                packet.getAddress().getHostAddress(), packet.getPort(), msg));
-                    }
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                } finally {
-                    multicastLock.release();
-                    subscriber.onCompleted();
-                }
-            }
-        });
+    public static final class Params {
+        private static final int DEFAULT_BUFFER_SIZE = 256;
+
+        private final String mAddress;
+        private final int mPort;
+        private final int mBufferSize;
+
+        private Params(String address, int port) {
+            this(address, port, DEFAULT_BUFFER_SIZE);
+        }
+
+        private Params(String address, int port, int bufferSize) {
+            mAddress = address;
+            mPort = port;
+            mBufferSize = bufferSize;
+        }
+
+        public static Params forConfig(String address, int port) {
+            return new Params(address, port);
+        }
+
+        public static Params forConfig(String address, int port, int bufferSize) {
+            return new Params(address, port, bufferSize);
+        }
+
+        public String getAddress() {
+            return mAddress;
+        }
+
+        public int getPort() {
+            return mPort;
+        }
+
+        public int getBufferSize() {
+            return mBufferSize;
+        }
     }
 }

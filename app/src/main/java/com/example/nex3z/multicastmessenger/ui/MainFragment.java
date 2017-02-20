@@ -16,6 +16,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.nex3z.multicastmessenger.R;
+import com.example.nex3z.multicastmessenger.datasource.DataSource;
+import com.example.nex3z.multicastmessenger.datasource.MulticastSocketDataSource;
 import com.example.nex3z.multicastmessenger.executor.JobExecutor;
 import com.example.nex3z.multicastmessenger.interactor.ReceiveMessage;
 import com.example.nex3z.multicastmessenger.interactor.SendMessage;
@@ -121,7 +123,10 @@ public class MainFragment extends Fragment implements MessengerView {
 
     private void initPresenter() {
         UIThread uiThread = new UIThread();
-        mPresenter = new MessengerPresenter(new SendMessage(new JobExecutor(), uiThread), new ReceiveMessage(new JobExecutor(), uiThread));
+        DataSource dataSource = new MulticastSocketDataSource();
+        mPresenter = new MessengerPresenter(
+                new SendMessage(dataSource, new JobExecutor(), uiThread),
+                new ReceiveMessage(dataSource, new JobExecutor(), uiThread));
         mPresenter.setView(this);
         mPresenter.initialize();
     }
