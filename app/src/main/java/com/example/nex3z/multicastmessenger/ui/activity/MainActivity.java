@@ -1,14 +1,18 @@
-package com.example.nex3z.multicastmessenger.ui;
+package com.example.nex3z.multicastmessenger.ui.activity;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.nex3z.multicastmessenger.R;
+import com.example.nex3z.multicastmessenger.internal.dagger.HasComponent;
+import com.example.nex3z.multicastmessenger.internal.dagger.component.DaggerMessengerComponent;
+import com.example.nex3z.multicastmessenger.internal.dagger.component.MessengerComponent;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity implements HasComponent<MessengerComponent> {
+
+    private MessengerComponent mMessengerComponent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        initInjector();
     }
 
     @Override
@@ -34,5 +39,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public MessengerComponent getComponent() {
+        return mMessengerComponent;
+    }
+
+    private void initInjector() {
+        mMessengerComponent = DaggerMessengerComponent.builder()
+                .appComponent(getApplicationComponent())
+                .activityModule(getActivityModule())
+                .build();
     }
 }

@@ -5,6 +5,8 @@ import com.example.nex3z.multicastmessenger.executor.PostExecutionThread;
 import com.example.nex3z.multicastmessenger.executor.ThreadExecutor;
 import com.example.nex3z.multicastmessenger.model.MessageModel;
 
+import javax.inject.Inject;
+
 import io.reactivex.Observable;
 
 public class ReceiveMessage extends UseCase<MessageModel, ReceiveMessage.Params> {
@@ -12,6 +14,7 @@ public class ReceiveMessage extends UseCase<MessageModel, ReceiveMessage.Params>
 
     private final DataSource mDataSource;
 
+    @Inject
     public ReceiveMessage(DataSource dataSource, ThreadExecutor threadExecutor,
                           PostExecutionThread postExecutionThread) {
         super(threadExecutor, postExecutionThread);

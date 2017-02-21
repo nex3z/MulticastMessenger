@@ -1,8 +1,7 @@
-package com.example.nex3z.multicastmessenger.ui;
+package com.example.nex3z.multicastmessenger.ui.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,29 +15,29 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.nex3z.multicastmessenger.R;
-import com.example.nex3z.multicastmessenger.datasource.DataSource;
-import com.example.nex3z.multicastmessenger.datasource.MulticastSocketDataSource;
-import com.example.nex3z.multicastmessenger.executor.JobExecutor;
-import com.example.nex3z.multicastmessenger.interactor.ReceiveMessage;
-import com.example.nex3z.multicastmessenger.interactor.SendMessage;
+import com.example.nex3z.multicastmessenger.internal.dagger.component.MessengerComponent;
 import com.example.nex3z.multicastmessenger.model.MessageModel;
 import com.example.nex3z.multicastmessenger.presenter.MessengerPresenter;
+import com.example.nex3z.multicastmessenger.ui.MessengerView;
+import com.example.nex3z.multicastmessenger.ui.adapter.MessageAdapter;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
-public class MainFragment extends Fragment implements MessengerView {
+public class MainFragment extends BaseFragment implements MessengerView {
     private static final String LOG_TAG = MainFragment.class.getSimpleName();
 
     @BindView(R.id.rv_messages) RecyclerView mRvList;
     @BindView(R.id.et_input) EditText mEtInput;
 
-    private MessageAdapter mAdapter;
-    private MessengerPresenter mPresenter;
+    @Inject MessengerPresenter mPresenter;
+    @Inject MessageAdapter mAdapter;
     private Unbinder mUnbinder;
 
     public MainFragment() {}
@@ -50,15 +49,22 @@ public class MainFragment extends Fragment implements MessengerView {
     }
 
     @Override
+    protected boolean onInjectView() throws IllegalStateException {
+        getComponent(MessengerComponent.class).inject(this);
+        return true;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        ButterKnife.bind(this, rootView);
+        mUnbinder = ButterKnife.bind(this, rootView);
         return rootView;
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    protected void onViewInjected(Bundle savedInstanceState) {
+        super.onViewInjected(savedInstanceState);
         initRecyclerView();
         initPresenter();
     }
@@ -73,6 +79,12 @@ public class MainFragment extends Fragment implements MessengerView {
     public void onPause() {
         super.onPause();
         mPresenter.pause();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mUnbinder.unbind();
     }
 
     @Override
@@ -122,17 +134,11 @@ public class MainFragment extends Fragment implements MessengerView {
     }
 
     private void initPresenter() {
-        UIThread uiThread = new UIThread();
-        DataSource dataSource = new MulticastSocketDataSource();
-        mPresenter = new MessengerPresenter(
-                new SendMessage(dataSource, new JobExecutor(), uiThread),
-                new ReceiveMessage(dataSource, new JobExecutor(), uiThread));
         mPresenter.setView(this);
         mPresenter.initialize();
     }
 
     private void initRecyclerView() {
-        mAdapter = new MessageAdapter(getContext());
         mRvList.setAdapter(mAdapter);
         mRvList.setLayoutManager(new LinearLayoutManager(getContext()));
         mRvList.setItemAnimator(null);

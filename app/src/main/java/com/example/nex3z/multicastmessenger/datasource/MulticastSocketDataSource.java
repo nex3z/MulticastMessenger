@@ -1,15 +1,15 @@
 package com.example.nex3z.multicastmessenger.datasource;
 
-import android.content.Context;
 import android.net.wifi.WifiManager;
 
-import com.example.nex3z.multicastmessenger.app.App;
 import com.example.nex3z.multicastmessenger.model.MessageModel;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
+
+import javax.inject.Inject;
 
 import io.reactivex.Observable;
 
@@ -19,10 +19,11 @@ public class MulticastSocketDataSource implements DataSource {
     private static final int READ_TIMEOUT = 500;
     private WifiManager.MulticastLock mMulticastLock;
 
-    public MulticastSocketDataSource() {
-        WifiManager wifiManager =
-                (WifiManager) App.getAppContext().getSystemService(Context.WIFI_SERVICE);
-        mMulticastLock = wifiManager.createMulticastLock(MULTICAST_TAG);
+    @Inject
+    public MulticastSocketDataSource(WifiManager.MulticastLock lock) {
+//        WifiManager wifiManager =
+//                (WifiManager) App.getAppContext().getSystemService(Context.WIFI_SERVICE);
+        mMulticastLock = lock;
     }
 
     @Override

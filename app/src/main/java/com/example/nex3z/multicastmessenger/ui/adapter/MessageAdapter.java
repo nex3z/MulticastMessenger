@@ -1,4 +1,4 @@
-package com.example.nex3z.multicastmessenger.ui;
+package com.example.nex3z.multicastmessenger.ui.adapter;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
@@ -16,6 +16,8 @@ import com.example.nex3z.multicastmessenger.model.MessageModel;
 import java.util.Collection;
 import java.util.List;
 
+import javax.inject.Inject;
+
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
     private List<MessageModel> mMessages;
@@ -25,6 +27,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     private int mSendColor;
     private String mLocalAddr;
 
+    @Inject
     public MessageAdapter(Context context) {
         mLocalColor = ContextCompat.getColor(context, R.color.colorLocal);
         mRemoteColor = ContextCompat.getColor(context, R.color.colorRemote);

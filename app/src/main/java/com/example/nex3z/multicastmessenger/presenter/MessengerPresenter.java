@@ -10,6 +10,8 @@ import com.example.nex3z.multicastmessenger.ui.MessengerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 public class MessengerPresenter implements Presenter {
     private static final String LOG_TAG = MessengerPresenter.class.getSimpleName();
 
@@ -23,7 +25,8 @@ public class MessengerPresenter implements Presenter {
     private String mGroupIp = DEFAULT_ADDRESS;
     private int mPort = DEFAULT_PORT;
 
-    public MessengerPresenter(UseCase sendMessage, UseCase receiveUseCase) {
+    @Inject
+    public MessengerPresenter(SendMessage sendMessage, ReceiveMessage receiveUseCase) {
         mSendUseCase = sendMessage;
         mReceiveUseCase = receiveUseCase;
     }
