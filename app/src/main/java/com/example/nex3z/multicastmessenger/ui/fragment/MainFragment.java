@@ -1,5 +1,6 @@
 package com.example.nex3z.multicastmessenger.ui.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
@@ -91,7 +92,6 @@ public class MainFragment extends BaseFragment implements MessengerView {
     public void onDestroy() {
         super.onDestroy();
         mPresenter.destroy();
-        mUnbinder.unbind();
     }
 
     @Override
@@ -126,6 +126,10 @@ public class MainFragment extends BaseFragment implements MessengerView {
     @Override
     public void renderMessageModelList(List<MessageModel> messages) {
         mAdapter.setMessageCollection(messages);
+    }
+
+    @Override public Context context() {
+        return getActivity().getApplicationContext();
     }
 
     @OnClick(R.id.btn_send)

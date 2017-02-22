@@ -1,5 +1,9 @@
 package com.example.nex3z.multicastmessenger.presenter;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
+import com.example.nex3z.multicastmessenger.R;
 import com.example.nex3z.multicastmessenger.interactor.DefaultObserver;
 import com.example.nex3z.multicastmessenger.interactor.ReceiveMessage;
 import com.example.nex3z.multicastmessenger.interactor.SendMessage;
@@ -40,6 +44,13 @@ public class MessengerPresenter implements Presenter {
         if (mView == null) {
             throw new IllegalStateException("Cannot initialize, the view is null.");
         }
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(mView.context());
+        mGroupIp = sharedPref.getString(
+                mView.context().getString(R.string.pref_key_address), DEFAULT_ADDRESS);
+        mPort = Integer.valueOf(sharedPref.getString(
+                mView.context().getString(R.string.pref_key_port), String.valueOf(DEFAULT_PORT)));
+
         startReceive();
     }
 

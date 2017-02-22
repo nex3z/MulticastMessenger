@@ -1,6 +1,8 @@
 package com.example.nex3z.multicastmessenger.ui.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +22,9 @@ public class MainActivity extends BaseActivity implements HasComponent<Messenger
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         initInjector();
+        initDefaultSettings();
     }
 
     @Override
@@ -33,8 +37,9 @@ public class MainActivity extends BaseActivity implements HasComponent<Messenger
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
             return true;
         }
 
@@ -52,4 +57,9 @@ public class MainActivity extends BaseActivity implements HasComponent<Messenger
                 .activityModule(getActivityModule())
                 .build();
     }
+
+    private void initDefaultSettings() {
+        PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
+    }
+
 }

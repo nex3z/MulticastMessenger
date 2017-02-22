@@ -1,0 +1,22 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_address"
+        android:inputType="text"
+        android:key="@string/pref_key_address"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_address"/>
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_port"
+        android:inputType="number"
+        android:key="@string/pref_key_port"
+        android:maxLines="1"
+        android:maxLength="5"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_port"/>
+
+</PreferenceScreen>
