@@ -98,8 +98,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         private boolean validateAddress(Preference preference, String newAddress) {
             Matcher matcher = Patterns.IP_ADDRESS.matcher(newAddress);
             if (matcher.matches()) {
-                preference.setSummary(newAddress);
-                return true;
+                String[] parts = newAddress.split("\\.");
+                int first = Integer.parseInt(parts[0]);
+                if (first >= 224 && first <= 239) {
+                    preference.setSummary(newAddress);
+                    return true;
+                }
             }
             Toast.makeText(preference.getContext(),
                     R.string.msg_invalid_address, Toast.LENGTH_LONG).show();
