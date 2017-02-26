@@ -109,6 +109,7 @@ public class MessengerPresenter implements Presenter {
         @Override
         public void onError(Throwable e) {
             e.printStackTrace();
+            mView.showMessage(e.getMessage());
         }
     }
 
@@ -121,6 +122,7 @@ public class MessengerPresenter implements Presenter {
         @Override
         public void onError(Throwable e) {
             e.printStackTrace();
+            mView.showMessage(e.getMessage());
         }
     }
 

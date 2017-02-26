@@ -7,7 +7,7 @@ import com.example.nex3z.multicastmessenger.app.App;
 import com.example.nex3z.multicastmessenger.internal.dagger.component.AppComponent;
 import com.example.nex3z.multicastmessenger.internal.dagger.module.ActivityModule;
 
-public class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
